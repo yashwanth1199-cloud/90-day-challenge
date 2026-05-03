@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>90 Day Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: rgba(255,255,255,0.08);
+    --text: #f0ede8;
+    --muted: rgba(240,237,232,0.45);
+    --accent: #c8f55a;
+    --accent-dim: rgba(200,245,90,0.12);
+    --accent-hover: #d8ff6a;
+    --red: #ff6b6b;
+    --teal: #5af5c8;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ── PICK SCREEN ── */
+  #screen-pick {
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+  }
+
+  #screen-pick::before {
+    content: '';
+    position: absolute;
+    top: -200px; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(200,245,90,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .pick-inner {
+    width: 100%; max-width: 400px;
+    display: flex; flex-direction: column; gap: 1.5rem;
+    position: relative; z-index: 1;
+  }
+
+  .pick-header { text-align: center; }
+  .pick-header .day-badge {
+    display: inline-block;
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 4px 14px;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(200,245,90,0.2);
+  }
+
+  .pick-header h1 {
+    font-family: var(--font-display);
+    font-size: 2.4rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .pick-header h1 span { color: var(--accent); }
+
+  .pick-header p {
+    margin-top: 0.6rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 300;
+  }
+
+  .names-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .name-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1.1rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 10px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 400;
+    text-align: left;
+  }
+
+  .name-btn:hover {
+    border-color: rgba(200,245,90,0.4);
+    background: var(--surface2);
+    transform: translateY(-1px);
+  }
+
+  .name-avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-size: 13px; font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    padding: 1rem 1.25rem;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky; top: 0; z-index: 10;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 10px; }
+  .topbar-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-size: 12px; font-weight: 700;
+  }
+  .topbar-name { font-family: var(--font-display); font-size: 15px; font-weight: 600; }
+  .topbar-day { font-size: 12px; color: var(--muted); }
+
+  .topbar-tabs { display: flex; gap: 4px; }
+  .tab-btn {
+    background: none; border: none; color: var(--muted);
+    font-family: var(--font-body); font-size: 13px; font-weight: 400;
+    padding: 6px 12px; border-radius: 8px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab-btn.active { background: var(--surface2); color: var(--text); }
+  .tab-btn:hover:not(.active) { color: var(--text); }
+
+  .switch-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); font-size: 12px; font-family: var(--font-body);
+    padding: 5px 10px; border-radius: 8px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .switch-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+  /* ── MAIN CONTENT ── */
+  .content { flex: 1; padding: 1.25rem; max-width: 520px; width: 100%; margin: 0 auto; }
+
+  /* ── TAB PANELS ── */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── CHECK-IN PANEL ── */
+  .day-hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .day-num {
+    font-family: var(--font-display);
+    font-size: 2.8rem; font-weight: 800;
+    line-height: 1; color: var(--accent);
+  }
+
+  .day-label { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .streak-pill {
+    background: var(--accent-dim);
+    border: 1px solid rgba(200,245,90,0.2);
+    border-radius: 100px;
+    padding: 6px 14px;
+    text-align: center;
+  }
+  .streak-num { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+  .streak-label { font-size: 11px; color: var(--muted); display: block; }
+
+  .checkin-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 13px; font-weight: 600;
+    letter-spacing: 0.05em; color: var(--muted);
+    text-transform: uppercase; margin-bottom: 1rem;
+  }
+
+  .habit-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .habit-row:last-of-type { border-bottom: none; }
+
+  .habit-left { display: flex; align-items: center; gap: 12px; }
+  .habit-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    background: var(--surface2);
+    transition: background 0.2s;
+  }
+  .habit-row.checked .habit-icon { background: var(--accent-dim); }
+
+  .habit-name { font-size: 15px; font-weight: 400; }
+  .habit-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+  .habit-check {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; font-size: 12px; color: transparent;
+    background: transparent;
+  }
+  .habit-row.checked .habit-check {
+    background: var(--accent); border-color: var(--accent); color: #000;
+  }
+
+  /* Photo upload */
+  .photo-upload {
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .photo-upload:hover { border-color: rgba(200,245,90,0.4); background: var(--accent-dim); }
+  .photo-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .photo-upload-icon { font-size: 24px; margin-bottom: 6px; }
+  .photo-upload-text { font-size: 13px; color: var(--muted); }
+  .photo-upload-text strong { color: var(--accent); font-weight: 500; }
+  .photo-preview { max-width: 100%; border-radius: 8px; max-height: 160px; object-fit: cover; }
+
+  .note-input {
+    width: 100%; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    color: var(--text); font-family: var(--font-body); font-size: 14px;
+    padding: 0.75rem 1rem; resize: none; outline: none;
+    transition: border-color 0.2s; margin-top: 0.75rem;
+  }
+  .note-input:focus { border-color: rgba(200,245,90,0.4); }
+  .note-input::placeholder { color: var(--muted); }
+
+  .submit-btn {
+    width: 100%; padding: 1rem;
+    background: var(--accent); color: #000;
+    border: none; border-radius: var(--radius-sm);
+    font-family: var(--font-display); font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; margin-top: 0.5rem;
+    letter-spacing: 0.02em;
+  }
+  .submit-btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+  .submit-btn:active { transform: translateY(0); }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .already-done {
+    background: rgba(90,245,200,0.08);
+    border: 1px solid rgba(90,245,200,0.2);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    text-align: center;
+    color: var(--teal);
+    font-size: 14px;
+  }
+  .already-done strong { font-family: var(--font-display); font-size: 16px; display: block; margin-bottom: 4px; }
+
+  /* ── HISTORY PANEL ── */
+  .history-list { display: flex; flex-direction: column; gap: 8px; }
+  .history-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.9rem 1rem;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .history-date { font-family: var(--font-display); font-size: 13px; font-weight: 600; min-width: 60px; }
+  .history-badges { display: flex; gap: 6px; flex: 1; }
+  .badge {
+    font-size: 11px; padding: 3px 8px; border-radius: 100px;
+    font-weight: 500;
+  }
+  .badge.green { background: rgba(90,245,90,0.12); color: #5af55a; }
+  .badge.muted { background: var(--surface2); color: var(--muted); }
+  .history-note { font-size: 12px; color: var(--muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ── LEADERBOARD PANEL ── */
+  .board-list { display: flex; flex-direction: column; gap: 8px; }
+  .board-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.1rem;
+    display: flex; align-items: center; gap: 12px;
+    transition: border-color 0.2s;
+  }
+  .board-item.me { border-color: rgba(200,245,90,0.3); }
+  .board-rank { font-family: var(--font-display); font-size: 18px; font-weight: 800; min-width: 28px; color: var(--muted); }
+  .board-rank.gold { color: #f5c842; }
+  .board-rank.silver { color: #b0bec5; }
+  .board-rank.bronze { color: #cd7f32; }
+  .board-av { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 13px; font-weight: 700; }
+  .board-info { flex: 1; }
+  .board-name { font-size: 15px; font-weight: 400; }
+  .board-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .board-streak { text-align: right; }
+  .board-streak-num { font-family: var(--font-display); font-size: 18px; font-weight: 800; color: var(--accent); }
+  .board-streak-label { font-size: 11px; color: var(--muted); display: block; }
+
+  /* progress bar inside board */
+  .progress-bar { height: 3px; background: var(--surface2); border-radius: 100px; margin-top: 6px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 100px; transition: width 0.6s ease; }
+
+  /* ── STATUS / TOAST ── */
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px);
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 100px; padding: 10px 20px;
+    font-size: 14px; color: var(--text);
+    transition: transform 0.3s ease; z-index: 100;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: rgba(200,245,90,0.4); color: var(--accent); }
+  .toast.error { border-color: rgba(255,107,107,0.4); color: var(--red); }
+
+  /* ── CONFIG SCREEN ── */
+  #screen-config {
+    align-items: center; justify-content: center; padding: 2rem;
+  }
+  .config-inner { width: 100%; max-width: 420px; }
+  .config-inner h2 { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .config-inner p { color: var(--muted); font-size: 14px; margin-bottom: 1.5rem; line-height: 1.6; }
+  .config-field { margin-bottom: 1rem; }
+  .config-label { font-size: 13px; color: var(--muted); margin-bottom: 6px; display: block; }
+  .config-input {
+    width: 100%; background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    color: var(--text); font-family: var(--font-body); font-size: 14px;
+    padding: 0.75rem 1rem; outline: none; transition: border-color 0.2s;
+  }
+  .config-input:focus { border-color: rgba(200,245,90,0.5); }
+  .config-save {
+    width: 100%; padding: 0.9rem;
+    background: var(--accent); color: #000;
+    border: none; border-radius: var(--radius-sm);
+    font-family: var(--font-display); font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; margin-top: 0.5rem;
+  }
+  .config-save:hover { background: var(--accent-hover); }
+  .config-note {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem; font-size: 13px; color: var(--muted);
+    line-height: 1.6; margin-top: 1rem;
+  }
+  .config-note code {
+    background: var(--surface2); padding: 2px 6px; border-radius: 4px;
+    font-size: 12px; color: var(--accent);
+  }
+
+  /* ── LOADING ── */
+  .loading-spinner {
+    width: 20px; height: 20px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.7s linear infinite; display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: 14px; }
+  .empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+
+  /* avatar colors */
+  .av-0 { background: rgba(200,245,90,0.15); color: #c8f55a; }
+  .av-1 { background: rgba(90,245,200,0.15); color: #5af5c8; }
+  .av-2 { background: rgba(245,130,90,0.15); color: #f5824a; }
+  .av-3 { background: rgba(200,90,245,0.15); color: #c85af5; }
+  .av-4 { background: rgba(90,160,245,0.15); color: #5aa0f5; }
+  .av-5 { background: rgba(245,200,90,0.15); color: #f5c85a; }
+</style>
+</head>
+<body>
+
+<!-- SCREEN: CONFIG (shown if no script URL saved) -->
+<div class="screen" id="screen-config">
+  <div class="config-inner">
+    <h2>One-time setup</h2>
+    <p>Paste your Google Apps Script URL below. You only do this once — after that, everyone just opens this file and picks their name.</p>
+    <div class="config-field">
+      <label class="config-label">Apps Script Web App URL</label>
+      <input class="config-input" id="script-url-input" placeholder="https://script.google.com/macros/s/..." />
+    </div>
+    <button class="config-save" onclick="saveConfig()">Save & continue</button>
+    <div class="config-note">
+      Don't have a URL yet? Follow the setup guide — you'll create a Google Sheet, paste a short script, and get this URL in about 5 minutes. <br><br>
+      <strong style="color:var(--text)">Need the script code?</strong> It's included at the bottom of this page — search for <code>APPS SCRIPT CODE</code>.
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: PICK WHO YOU ARE -->
+<div class="screen" id="screen-pick">
+  <div class="pick-inner">
+    <div class="pick-header">
+      <div class="day-badge" id="pick-day-badge">DAY 1 OF 90</div>
+      <h1>Who are<br>you <span>today?</span></h1>
+      <p>Tap your name to open your dashboard</p>
+    </div>
+    <div class="names-grid" id="names-grid"></div>
+  </div>
+</div>
+
+<!-- SCREEN: MAIN APP -->
+<div class="screen" id="screen-main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-avatar" id="topbar-avatar"></div>
+      <div>
+        <div class="topbar-name" id="topbar-name"></div>
+        <div class="topbar-day" id="topbar-day"></div>
+      </div>
+    </div>
+    <div class="topbar-tabs">
+      <button class="tab-btn active" onclick="switchTab('checkin', this)">Today</button>
+      <button class="tab-btn" onclick="switchTab('history', this)">Log</button>
+      <button class="tab-btn" onclick="switchTab('board', this)">Board</button>
+    </div>
+    <button class="switch-btn" onclick="switchUser()">Switch</button>
+  </div>
+
+  <div class="content">
+    <!-- CHECK-IN TAB -->
+    <div class="tab-panel active" id="tab-checkin">
+      <div class="day-hero">
+        <div>
+          <div class="day-num" id="hero-day">—</div>
+          <div class="day-label">of 90 days</div>
+        </div>
+        <div class="streak-pill">
+          <div class="streak-num" id="hero-streak">—</div>
+          <span class="streak-label">day streak</span>
+        </div>
+      </div>
+
+      <!-- Already checked in today -->
+      <div id="already-done-msg" class="already-done" style="display:none; margin-bottom:1rem;">
+        <strong>✓ All done for today!</strong>
+        Check back tomorrow to keep your streak going.
+      </div>
+
+      <div id="checkin-form">
+        <div class="checkin-card">
+          <div class="card-title">Today's habits</div>
+
+          <div class="habit-row" id="row-food" onclick="toggleHabit('food')">
+            <div class="habit-left">
+              <div class="habit-icon">🥗</div>
+              <div>
+                <div class="habit-name">Ate healthy</div>
+                <div class="habit-sub">Whole foods, no junk</div>
+              </div>
+            </div>
+            <div class="habit-check" id="check-food">✓</div>
+          </div>
+
+          <div class="habit-row" id="row-exercise" onclick="toggleHabit('exercise')">
+            <div class="habit-left">
+              <div class="habit-icon">🏋️</div>
+              <div>
+                <div class="habit-name">Exercised 1 hour</div>
+                <div class="habit-sub">Any movement counts</div>
+              </div>
+            </div>
+            <div class="habit-check" id="check-exercise">✓</div>
+          </div>
+        </div>
+
+        <div class="checkin-card">
+          <div class="card-title">Photo of the day</div>
+          <div class="photo-upload" id="photo-drop" onclick="document.getElementById('photo-file').click()">
+            <input type="file" id="photo-file" accept="image/*" capture="environment" onchange="handlePhoto(this)" style="display:none">
+            <div id="photo-placeholder">
+              <div class="photo-upload-icon">📸</div>
+              <div class="photo-upload-text">Tap to upload · <strong>meal or workout</strong></div>
+            </div>
+            <img id="photo-preview" class="photo-preview" style="display:none" />
+          </div>
+
+          <textarea class="note-input" id="note-input" rows="2" placeholder="Optional note — what did you eat? what was your workout?"></textarea>
+        </div>
+
+        <button class="submit-btn" id="submit-btn" onclick="submitCheckin()">Log today ↗</button>
+      </div>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div class="tab-panel" id="tab-history">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+        <span style="font-family:var(--font-display);font-size:16px;font-weight:700;">Your log</span>
+        <span id="history-total" style="font-size:13px;color:var(--muted)"></span>
+      </div>
+      <div id="history-loading" style="text-align:center;padding:2rem;color:var(--muted)"><div class="loading-spinner"></div></div>
+      <div class="history-list" id="history-list" style="display:none"></div>
+      <div class="empty-state" id="history-empty" style="display:none">
+        <div class="empty-icon">📋</div>
+        No check-ins yet. Start today!
+      </div>
+    </div>
+
+    <!-- LEADERBOARD TAB -->
+    <div class="tab-panel" id="tab-board">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+        <span style="font-family:var(--font-display);font-size:16px;font-weight:700;">Leaderboard</span>
+        <span style="font-size:13px;color:var(--muted)" id="board-updated"></span>
+      </div>
+      <div id="board-loading" style="text-align:center;padding:2rem;color:var(--muted)"><div class="loading-spinner"></div></div>
+      <div class="board-list" id="board-list" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════════
+const NAMES = ['Yash', 'Shetty', 'Teju', 'Spoorthi'];
+const START_DATE = new Date('2026-05-04');
+const TOTAL_DAYS = 90;
+const AV_COLORS = ['av-0','av-1','av-2','av-3','av-4','av-5'];
+
+// ══════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════
+let currentUser = null;
+let scriptUrl =  "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnTWX2hNsTiCXjrUlVDzkw8AzrNbJ75J7PDHdyTCW5qhjKweQAtcaxmEBG-tr4dbA85rjMOzD9gMqVtQXzSDGfJxQcFsSTEIWik5S3ikS8OYEfUn5i9WdUcxEt_J0RU7lzPkQ2sEwEMA8jOn86R7JusSKzR0YE-Q9uFBAKDGZcciBMcIofl1QEj1wZBDVkGZHmU1JpxZUHapmeTY13okF2o_1we9Eaibf6kXfvvlL2cPk97aIXR15VMxYHWX9zeKYmFUpHl1vhBYS7BZl3bN2cBKjze86Q&lib=M0fjUGEkPz8LHbJQXuPY97OKhRZZwLdRi";
+let habits = { food: false, exercise: false };
+let photoBase64 = null;
+let todayEntry = null;
+
+// ══════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════
+function init() {
+  // skip config screen entirely
+
+  updateDayBadge();
+  buildNamesGrid();
+
+  if (currentUser && NAMES.includes(currentUser)) {
+    openDashboard(currentUser);
+  } else {
+    showScreen('pick');
+  }
+}
+
+function updateDayBadge() {
+  const day = getDayNumber();
+  const el = document.getElementById('pick-day-badge');
+  if (el) el.textContent = `DAY ${day} OF ${TOTAL_DAYS}`;
+}
+
+function getDayNumber() {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const start = new Date(START_DATE);
+  start.setHours(0,0,0,0);
+  const diff = Math.floor((today - start) / 86400000) + 1;
+  return Math.max(1, Math.min(diff, TOTAL_DAYS));
+}
+
+function getTodayStr() {
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+}
+
+function getInitials(name) {
+  return name.slice(0,2).toUpperCase();
+}
+
+// ══════════════════════════════════════════════════
+//  SCREENS
+// ══════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+function switchUser() {
+  localStorage.removeItem('challenge_user');
+  currentUser = null;
+  showScreen('pick');
+}
+
+// ══════════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════════
+function saveConfig() {
+  const url = document.getElementById('script-url-input').value.trim();
+  if (!url.startsWith('https://')) {
+    showToast('Please paste a valid URL', 'error');
+    return;
+  }
+  localStorage.setItem('challenge_script_url', url);
+  scriptUrl = url;
+  updateDayBadge();
+  buildNamesGrid();
+  showScreen('pick');
+}
+
+// ══════════════════════════════════════════════════
+//  NAMES GRID
+// ══════════════════════════════════════════════════
+function buildNamesGrid() {
+  const grid = document.getElementById('names-grid');
+  grid.innerHTML = '';
+  NAMES.forEach((name, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'name-btn';
+    btn.innerHTML = `
+      <div class="name-avatar ${AV_COLORS[i % AV_COLORS.length]}">${getInitials(name)}</div>
+      <span>${name}</span>
+    `;
+    btn.onclick = () => selectUser(name);
+    grid.appendChild(btn);
+  });
+}
+
+function selectUser(name) {
+  localStorage.setItem('challenge_user', name);
+  currentUser = name;
+  openDashboard(name);
+}
+
+// ══════════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════════
+function openDashboard(name) {
+  const idx = NAMES.indexOf(name);
+  const avClass = AV_COLORS[idx % AV_COLORS.length];
+  const day = getDayNumber();
+
+  // Topbar
+  const av = document.getElementById('topbar-avatar');
+  av.textContent = getInitials(name);
+  av.className = 'topbar-avatar ' + avClass;
+  document.getElementById('topbar-name').textContent = name;
+  document.getElementById('topbar-day').textContent = `Day ${day} of ${TOTAL_DAYS}`;
+
+  // Hero
+  document.getElementById('hero-day').textContent = day;
+
+  // Reset habits
+  habits = { food: false, exercise: false };
+  photoBase64 = null;
+  document.getElementById('photo-preview').style.display = 'none';
+  document.getElementById('photo-placeholder').style.display = 'block';
+  document.getElementById('note-input').value = '';
+  document.getElementById('row-food').classList.remove('checked');
+  document.getElementById('row-exercise').classList.remove('checked');
+
+  showScreen('main');
+  switchTab('checkin', document.querySelector('.tab-btn'));
+
+  // Load user data
+  loadUserData(name);
+}
+
+// ══════════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════════
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+
+  if (tab === 'history') loadHistory();
+  if (tab === 'board') loadBoard();
+}
+
+// ══════════════════════════════════════════════════
+//  HABIT TOGGLE
+// ══════════════════════════════════════════════════
+function toggleHabit(type) {
+  habits[type] = !habits[type];
+  const row = document.getElementById('row-' + type);
+  row.classList.toggle('checked', habits[type]);
+}
+
+// ══════════════════════════════════════════════════
+//  PHOTO
+// ══════════════════════════════════════════════════
+function handlePhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    photoBase64 = e.target.result;
+    const img = document.getElementById('photo-preview');
+    img.src = photoBase64;
+    img.style.display = 'block';
+    document.getElementById('photo-placeholder').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ══════════════════════════════════════════════════
+//  LOAD USER DATA
+// ══════════════════════════════════════════════════
+async function loadUserData(name) {
+  try {
+    const res = await fetch(`${scriptUrl}?action=getUserData&name=${encodeURIComponent(name)}`);
+    const data = await res.json();
+    if (data.streak !== undefined) {
+      document.getElementById('hero-streak').textContent = data.streak;
+    }
+    // Check if already done today
+    if (data.todayDone) {
+      document.getElementById('already-done-msg').style.display = 'block';
+      document.getElementById('checkin-form').style.display = 'none';
+    } else {
+      document.getElementById('already-done-msg').style.display = 'none';
+      document.getElementById('checkin-form').style.display = 'block';
+    }
+  } catch (e) {
+    document.getElementById('hero-streak').textContent = '—';
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  SUBMIT CHECK-IN
+// ══════════════════════════════════════════════════
+async function submitCheckin() {
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span>';
+
+  const payload = {
+    action: 'checkin',
+    name: currentUser,
+    date: getTodayStr(),
+    day: getDayNumber(),
+    food: habits.food,
+    exercise: habits.exercise,
+    note: document.getElementById('note-input').value.trim(),
+    photo: photoBase64 || ''
+  };
+
+  try {
+    const res = await fetch(scriptUrl, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Logged! Keep it up 💪', 'success');
+      document.getElementById('already-done-msg').style.display = 'block';
+      document.getElementById('checkin-form').style.display = 'none';
+      document.getElementById('hero-streak').textContent = data.streak || '—';
+    } else {
+      showToast(data.error || 'Something went wrong', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Log today ↗';
+    }
+  } catch (e) {
+    showToast('Could not connect. Check your URL.', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Log today ↗';
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  HISTORY
+// ══════════════════════════════════════════════════
+async function loadHistory() {
+  const list = document.getElementById('history-list');
+  const loading = document.getElementById('history-loading');
+  const empty = document.getElementById('history-empty');
+  list.style.display = 'none';
+  empty.style.display = 'none';
+  loading.style.display = 'block';
+
+  try {
+    const res = await fetch(`${scriptUrl}?action=getHistory&name=${encodeURIComponent(currentUser)}`);
+    const data = await res.json();
+    loading.style.display = 'none';
+    const entries = data.entries || [];
+    document.getElementById('history-total').textContent = `${entries.length} days logged`;
+
+    if (entries.length === 0) {
+      empty.style.display = 'block';
+      return;
+    }
+
+    list.innerHTML = '';
+    entries.slice().reverse().forEach(e => {
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      const dateStr = formatDate(e.date);
+      div.innerHTML = `
+        <div class="history-date">${dateStr}</div>
+        <div class="history-badges">
+          <span class="badge ${e.food ? 'green' : 'muted'}">${e.food ? '🥗 Healthy' : '🥗 Missed'}</span>
+          <span class="badge ${e.exercise ? 'green' : 'muted'}">${e.exercise ? '🏋️ Done' : '🏋️ Missed'}</span>
+        </div>
+        ${e.note ? `<div class="history-note">${e.note}</div>` : ''}
+      `;
+      list.appendChild(div);
+    });
+
+    list.style.display = 'flex';
+  } catch(e) {
+    loading.style.display = 'none';
+    empty.style.display = 'block';
+  }
+}
+
+function formatDate(str) {
+  if (!str) return '—';
+  const d = new Date(str);
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+
+// ══════════════════════════════════════════════════
+//  LEADERBOARD
+// ══════════════════════════════════════════════════
+async function loadBoard() {
+  const list = document.getElementById('board-list');
+  const loading = document.getElementById('board-loading');
+  list.style.display = 'none';
+  loading.style.display = 'block';
+
+  try {
+    const res = await fetch(`${scriptUrl}?action=getLeaderboard`);
+    const data = await res.json();
+    loading.style.display = 'none';
+
+    const players = data.leaderboard || [];
+    const maxDays = Math.max(...players.map(p => p.total), 1);
+    const rankClasses = ['gold', 'silver', 'bronze'];
+
+    list.innerHTML = '';
+    players.forEach((p, i) => {
+      const idx = NAMES.indexOf(p.name);
+      const avClass = AV_COLORS[idx >= 0 ? idx % AV_COLORS.length : 0];
+      const pct = Math.round((p.total / getDayNumber()) * 100);
+      const isMe = p.name === currentUser;
+
+      const div = document.createElement('div');
+      div.className = 'board-item' + (isMe ? ' me' : '');
+      div.innerHTML = `
+        <div class="board-rank ${rankClasses[i] || ''}">${i + 1}</div>
+        <div class="board-av ${avClass}">${getInitials(p.name)}</div>
+        <div class="board-info">
+          <div class="board-name">${p.name}${isMe ? ' <span style="color:var(--accent);font-size:11px;">· you</span>' : ''}</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <div class="board-sub">${p.total} days · ${pct}% complete</div>
+        </div>
+        <div class="board-streak">
+          <div class="board-streak-num">${p.streak}</div>
+          <span class="board-streak-label">streak</span>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+
+    list.style.display = 'flex';
+    document.getElementById('board-updated').textContent = 'just now';
+  } catch(e) {
+    loading.style.display = 'none';
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div>Could not load board.</div>';
+    list.style.display = 'flex';
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ══════════════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════════════
+init();
+</script>
+
+<!--
+╔══════════════════════════════════════════════════════════════╗
+║                    APPS SCRIPT CODE                           ║
+║                                                               ║
+║  1. Go to sheets.google.com → create a new sheet             ║
+║     Name it: 90 Day Challenge                                 ║
+║                                                               ║
+║  2. In the sheet: Extensions → Apps Script                    ║
+║                                                               ║
+║  3. Delete everything in the editor and paste this code:     ║
+╚══════════════════════════════════════════════════════════════╝
+
+--- COPY FROM HERE ---
+
+const SHEET_NAME = 'CheckIns';
+const DRIVE_FOLDER_NAME = '90 Day Challenge Photos';
+
+function doGet(e) {
+  const action = e.parameter.action;
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  if (action === 'getUserData') {
+    return getUserData(ss, e.parameter.name);
+  }
+  if (action === 'getHistory') {
+    return getHistory(ss, e.parameter.name);
+  }
+  if (action === 'getLeaderboard') {
+    return getLeaderboard(ss);
+  }
+  return jsonResponse({ error: 'Unknown action' });
+}
+
+function doPost(e) {
+  const payload = JSON.parse(e.postData.contents);
+  if (payload.action === 'checkin') {
+    return handleCheckin(payload);
+  }
+  return jsonResponse({ error: 'Unknown action' });
+}
+
+function handleCheckin(p) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_NAME);
+    sheet.appendRow(['name','date','day','food','exercise','note','photoUrl','timestamp']);
+  }
+  
+  // Check if already done today
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === p.name && data[i][1] === p.date) {
+      return jsonResponse({ error: 'Already checked in today!' });
+    }
+  }
+  
+  // Handle photo upload
+  let photoUrl = '';
+  if (p.photo && p.photo.startsWith('data:')) {
+    try {
+      const folder = getOrCreateFolder(DRIVE_FOLDER_NAME);
+      const base64 = p.photo.split(',')[1];
+      const mimeType = p.photo.split(';')[0].split(':')[1];
+      const ext = mimeType.includes('png') ? 'png' : 'jpg';
+      const blob = Utilities.newBlob(Utilities.base64Decode(base64), mimeType, `${p.name}_${p.date}.${ext}`);
+      const file = folder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      photoUrl = file.getUrl();
+    } catch(err) {
+      photoUrl = 'upload_failed';
+    }
+  }
+  
+  sheet.appendRow([p.name, p.date, p.day, p.food, p.exercise, p.note, photoUrl, new Date().toISOString()]);
+  
+  const streak = calcStreak(sheet, p.name, p.date);
+  return jsonResponse({ success: true, streak: streak });
+}
+
+function getUserData(ss, name) {
+  let sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) return jsonResponse({ streak: 0, todayDone: false });
+  
+  const today = new Date().toISOString().split('T')[0];
+  const data = sheet.getDataRange().getValues();
+  let todayDone = false;
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === name && data[i][1] === today) { todayDone = true; break; }
+  }
+  const streak = calcStreak(sheet, name, today);
+  return jsonResponse({ streak, todayDone });
+}
+
+function getHistory(ss, name) {
+  let sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) return jsonResponse({ entries: [] });
+  
+  const data = sheet.getDataRange().getValues();
+  const entries = [];
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === name) {
+      entries.push({ date: data[i][1], day: data[i][2], food: data[i][3], exercise: data[i][4], note: data[i][5], photoUrl: data[i][6] });
+    }
+  }
+  return jsonResponse({ entries });
+}
+
+function getLeaderboard(ss) {
+  let sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) return jsonResponse({ leaderboard: [] });
+  
+  const names = ['Yash','Shetty','Teju','Spoorthi'];
+  const data = sheet.getDataRange().getValues();
+  const today = new Date().toISOString().split('T')[0];
+  
+  const board = names.map(name => {
+    const rows = data.filter(r => r[0] === name);
+    const total = rows.length;
+    const streak = calcStreakFromRows(rows, today);
+    return { name, total, streak };
+  });
+  
+  board.sort((a, b) => b.streak - a.streak || b.total - a.total);
+  return jsonResponse({ leaderboard: board });
+}
+
+function calcStreak(sheet, name, today) {
+  const data = sheet.getDataRange().getValues();
+  const rows = data.filter(r => r[0] === name);
+  return calcStreakFromRows(rows, today);
+}
+
+function calcStreakFromRows(rows, today) {
+  const dates = rows.map(r => r[1]).filter(Boolean).sort().reverse();
+  if (!dates.length) return 0;
+  let streak = 0;
+  let check = new Date(today);
+  for (let i = 0; i < dates.length; i++) {
+    const d = new Date(dates[i]);
+    const diff = Math.round((check - d) / 86400000);
+    if (diff === 0 || diff === 1) { streak++; check = d; }
+    else break;
+  }
+  return streak;
+}
+
+function getOrCreateFolder(name) {
+  const folders = DriveApp.getFoldersByName(name);
+  if (folders.hasNext()) return folders.next();
+  return DriveApp.createFolder(name);
+}
+
+function jsonResponse(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+--- COPY UNTIL HERE ---
+
+4. Click Save (floppy disk icon), then Deploy → New deployment
+5. Type: Web app
+6. Execute as: Me
+7. Who has access: Anyone
+8. Click Deploy → copy the URL
+9. Open this HTML file and paste the URL when prompted
+
+-->
+</body>
+</html>
