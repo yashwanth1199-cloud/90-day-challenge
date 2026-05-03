@@ -569,7 +569,7 @@ const AV_COLORS = ['av-0','av-1','av-2','av-3','av-4','av-5'];
 //  STATE
 // ══════════════════════════════════════════════════
 let currentUser = null;
-let scriptUrl =  "https://script.google.com/macros/s/AKfycbzr6S_3F60_TGC9Cu2tUb11OSev2sNsziD1AkTp_KA4LiI8f701Z74_AnAa5rt5Raif/exec";
+let scriptUrl =  "https://script.google.com/macros/s/AKfycbyxLdXsHOsm0X47AdkLOfqyvSGwN5PywnXMS_-EkY0Peoas928T650cYJBOFezi5kC1/exec";
 let habits = { food: false, exercise: false };
 let photoBase64 = null;
 let todayEntry = null;
@@ -785,9 +785,12 @@ async function submitCheckin() {
 
   try {
     const res = await fetch(scriptUrl, {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(payload)
+});
     const data = await res.json();
     if (data.success) {
       showToast('Logged! Keep it up 💪', 'success');
