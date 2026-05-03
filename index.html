@@ -569,7 +569,7 @@ const AV_COLORS = ['av-0','av-1','av-2','av-3','av-4','av-5'];
 //  STATE
 // ══════════════════════════════════════════════════
 let currentUser = null;
-let scriptUrl =  "https://script.google.com/macros/s/AKfycbynFp3gwDK369M0PYfFnx4BeUoGLPBdup9DeQ03Y-2h2mmfhEmutq8oywi-Ag6av9Aq/exec";
+let scriptUrl =  "https://script.google.com/macros/s/AKfycbzwWf8FsImAMcSIDqoWJObigJ63ZSBNa-8XR8oBXoxpctT1ebgouTTkpl8Q52c9MfL_/exec";
 let habits = { food: false, exercise: false };
 let photoBase64 = null;
 let todayEntry = null;
@@ -772,43 +772,38 @@ async function submitCheckin() {
   btn.disabled = true;
   btn.innerHTML = '<span class="loading-spinner"></span>';
 
-  const payload = {
-    action: 'checkin',
-    name: currentUser,
-    date: getTodayStr(),
-    day: getDayNumber(),
-    food: habits.food,
-    exercise: habits.exercise,
-    note: document.getElementById('note-input').value.trim(),
-    photo: photoBase64 || ''
-  };
+  const formData = new FormData();
+  formData.append("action", "checkin");
+  formData.append("name", currentUser);
+  formData.append("date", getTodayStr());
+  formData.append("day", getDayNumber());
+  formData.append("food", habits.food);
+  formData.append("exercise", habits.exercise);
+  formData.append("note", document.getElementById('note-input').value.trim());
+  formData.append("photo", photoBase64 || "");
 
   try {
-    const res = await fetch(scriptUrl, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify(payload)
-});
-    const data = await res.json();
-    if (data.success) {
-      showToast('Logged! Keep it up 💪', 'success');
-      document.getElementById('already-done-msg').style.display = 'block';
-      document.getElementById('checkin-form').style.display = 'none';
-      document.getElementById('hero-streak').textContent = data.streak || '—';
-    } else {
-      showToast(data.error || 'Something went wrong', 'error');
-      btn.disabled = false;
-      btn.textContent = 'Log today ↗';
-    }
-  } catch (e) {
-    showToast('Could not connect. Check your URL.', 'error');
-    btn.disabled = false;
-    btn.textContent = 'Log today ↗';
-  }
-}
+    await fetch(scriptUrl, {
+      method: "POST",
+      body: formData,
+      mode: "no-cors"
+    });
 
+    // We cannot read response due to no-cors, so assume success
+    showToast('Logged! Keep it up 💪', 'success');
+
+    document.getElementById('already-done-msg').style.display = 'block';
+    document.getElementById('checkin-form').style.display = 'none';
+
+    loadUserData(currentUser);
+
+  } catch (e) {
+    showToast('Network error. Try again.', 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Log today ↗';
+}
 // ══════════════════════════════════════════════════
 //  HISTORY
 // ══════════════════════════════════════════════════
